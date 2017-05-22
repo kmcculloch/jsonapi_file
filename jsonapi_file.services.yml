@@ -1,0 +1,8 @@
+services:
+  serializer.normalizer.file_entity.jsonapi:
+    class: Drupal\jsonapi_file\Normalizer\FileEntityNormalizer
+    arguments: ['@jsonapi.link_manager', '@jsonapi.resource_type.repository', '@entity_type.manager', '@file_system', '@current_user', '@config.factory']
+    tags:
+      # Priority should be higher than
+      # serializer.normalizer.entity.jsonapi which is 21.
+      - { name: normalizer, priority: 22 }
