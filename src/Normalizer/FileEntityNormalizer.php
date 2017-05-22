@@ -81,14 +81,22 @@ class FileEntityNormalizer extends EntityNormalizer {
     $file = parent::denormalize($data, $class, $format, $context);
 
     // If the request does not contain base64 file data, then there are no tasks
-    // for the current normalizer.
+    // for the current denormalizer.
     if (empty($data['data'])) {
       return $file;
     }
 
-    // Filename is mandatory field when uploading a new file.
-    if (empty($file->getFilename())) {
-      throw new PreconditionRequiredHttpException('Missing the required property "filename".');
+    // File URI is mandatory field when uploading a new file.
+    if (empty($file->getFileUri())) {
+      throw new PreconditionRequiredHttpException('Missing the required property "uri".');
+    }
+
+    // Make sure the file is going to be stored in the site's default file
+    // storage.
+    $file_scheme = file_default_scheme();
+    if (Unicode::strpos($file->getFileUri(), $file_scheme . '://') !== 0) {
+      $message = t('File URI must start with "@scheme://"', ['@scheme' => $file_scheme]);
+      throw new PreconditionFailedHttpException($message);
     }
 
     // If the current request contains "data" property, we assume that this is
