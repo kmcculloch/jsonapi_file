@@ -91,11 +91,12 @@ class FileEntityNormalizer extends EntityNormalizer {
       throw new PreconditionRequiredHttpException('Missing the required property "uri".');
     }
 
-    // Make sure the file is going to be stored in the site's default file
-    // storage.
-    $file_scheme = file_default_scheme();
-    if (Unicode::strpos($file->getFileUri(), $file_scheme . '://') !== 0) {
-      $message = t('File URI must start with "@scheme://"', ['@scheme' => $file_scheme]);
+    // Make sure the file is going to be stored in on the enabled storage
+    // schemes.
+    $schemes = file_entity_get_public_and_private_stream_wrapper_names();
+    $scheme = $this->fileSystem->uriScheme($file->getFileUri());
+    if (!isset($schemes['private'][$scheme]) && !isset($schemes['public'][$scheme])) {
+      $message = t('Scheme "@scheme://" is not valid.', ['@scheme' => $scheme]);
       throw new PreconditionFailedHttpException($message);
     }
 
@@ -114,15 +115,12 @@ class FileEntityNormalizer extends EntityNormalizer {
     // Run all necessary validations on the file.
     $this->validateFile($file);
 
-    // Build the destination uri.
-    $destination = file_default_scheme() . '://' . $file->getFilename();
-
     // Make sure the directory for the file allows file save.
-    $dirname = $this->fileSystem->dirname($destination);
+    $dirname = $this->fileSystem->dirname($file->getFileUri());
     file_prepare_directory($dirname, FILE_CREATE_DIRECTORY);
 
     // Save file content to the destination path.
-    $uri = file_unmanaged_save_data($file_contents, $destination);
+    $uri = file_unmanaged_save_data($file_contents, $file->getFileUri());
     if (empty($uri)) {
       $error = t('Could not move uploaded file %file to destination %destination.',
         ['%file' => $file->getFilename(), '%destination' => $file->getFileUri()]);
