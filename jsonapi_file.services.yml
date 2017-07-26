@@ -5,4 +5,6 @@ services:
     tags:
       # Priority should be higher than
       # serializer.normalizer.entity.jsonapi which is 21.
-      - { name: normalizer, priority: 22 }
+      # The priority was increased to 23 due to
+      # https://www.drupal.org/node/2892341.
+      - { name: normalizer, priority: 23 }
