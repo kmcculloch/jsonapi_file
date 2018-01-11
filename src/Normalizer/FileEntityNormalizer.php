@@ -173,8 +173,10 @@ class FileEntityNormalizer extends EntityNormalizer {
     $text_file = substr($file->getFilename(), -4) == '.txt';
     if (!$allow_insecure_uploads && $insecure_filename && !$text_file) {
       $file->setMimeType('text/plain');
-      // The destination filename will also later be used to create the URI.
+      // Force add .txt to the end of file's name and uri to prevent security
+      // issues.
       $file->setFilename($file->getFilename() . '.txt');
+      $file->setFileUri($file->getFileUri() . '.txt');
       // The .txt extension may not be in the allowed list of extensions. We
       // have to add it here or else the file upload will fail.
       if (!empty($allowed_extensions)) {
